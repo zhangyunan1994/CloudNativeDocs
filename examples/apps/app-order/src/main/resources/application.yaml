@@ -1,0 +1,7 @@
+server:
+  port: 30000
+logging:
+  config: classpath:logback-file-and-console.xml
+spring:
+  profiles:
+    active: dev

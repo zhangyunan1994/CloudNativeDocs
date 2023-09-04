@@ -1,0 +1,196 @@
+:toc:
+
+== Docker 示例
+
+=== Java 项目
+
+假设有个 Spring Boot 项目，其项目结构如下
+
+----
+.
+├── Dockerfile
+├── docker-entrypoint.sh
+├── mvnw
+├── mvnw.cmd
+├── pom.xml
+├── settings.xml
+└── src
+    ├── main
+    │   ├── java
+    │   │   └── order
+    │   │       ├── AppOrderApplication.java
+    │   │       ├── InfoController.java
+    │   │       ├── OrderController.java
+    │   │       └── OrderServerProperties.java
+    │   └── resources
+    │       ├── application-dev.yaml
+    │       ├── application-prod.yaml
+    │       ├── application-test.yaml
+    │       ├── application.yaml
+    │       └── logback-file-and-console.xml
+    └── test
+        └── java
+            └── order
+                └── AppOrderApplicationTests.java
+----
+
+.docker-entrypoint.sh
+----
+#!/bin/sh
+
+echo "Start service [ Spring Boot Application ]."
+java -jar app.jar ${JAVA_ARGS}
+----
+
+.Dockerfile
+[source,dockerfile]
+----
+FROM openjdk:8u342-oracle
+LABEL authors="zhangyunan"
+
+ENV TZ=Asia/Shanghai
+ENV LC_ALL en_US.utf8
+
+WORKDIR /app
+
+COPY target/*.jar /app/app.jar
+COPY docker-entrypoint.sh /app
+
+RUN chmod +x docker-entrypoint.sh
+
+EXPOSE 30000
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+----
+
+.Docker 构建项目
+----
+docker build -t zyndev/spring-boot-app:1.0 .
+----
+
+.Docker 运行项目
+----
+docker run -e "JAVA_ARGS=--spring.profiles.active=prod" -p 30002:30000 -d --name spring-boot-app-prod zyndev/spring-boot-app:1.0
+----
+
+=== Go 项目
+
+假设 Go 项目如下
+
+----
+.
+├── Dockerfile
+├── entrypoint.sh
+├── go.mod
+├── go.sum
+└── main.go
+----
+
+.docker-entrypoint.sh
+----
+#!/bin/sh
+
+
+CURRENT_DIR=$(dirname $0)
+PID_FILE=${CURRENT_DIR}/web-console.pid
+PROJECT='web-console'
+PROJECT_EXE='web-console'
+LOG_FILE='web-console.log'
+
+echo "Start service [${PROJECT}]."
+./${PROJECT_EXE} >> ${LOG_FILE} 2>&1
+----
+
+.Dockerfile
+[source,dockerfile]
+----
+FROM alpine:3.18.3
+LABEL authors="zhangyunan"
+
+WORKDIR /app
+
+COPY dist/web-console /app
+COPY docker-entrypoint.sh /app
+
+RUN chmod +x docker-entrypoint.sh
+
+EXPOSE 20000
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+----
+
+*1. 构建 Go*
+
+.Linux 环境包, 为了 docker 使用
+[source,bash]
+----
+GOOS=linux GOARCH=amd64 go build -o dist/web-console main.go
+----
+
+*2. Docker 打包*
+
+[source,bash]
+----
+docker build -t zyndev/web-console:1.0 .
+----
+
+*3. Docker 运行*
+
+[source,bash]
+----
+docker run -p 20000:20000 -d --name web-console zyndev/web-console:1.0
+----
+
+=== Python 项目
+
+项目如下
+
+----
+.
+├── Dockerfile
+├── README.adoc
+├── app.py
+├── docker-entrypoint.sh
+└── requirements.txt
+----
+
+.docker-entrypoint.sh
+----
+#!/bin/sh
+
+echo "Start service [ App User ]."
+python app.py
+----
+
+.Dockerfile
+[source,dockerfile]
+----
+FROM python:3.9-slim
+LABEL authors="zhangyunan"
+
+WORKDIR /app
+
+COPY requirements.txt /app
+COPY app.py /app
+COPY docker-entrypoint.sh /app
+
+RUN pip install -r requirements.txt && chmod +x docker-entrypoint.sh
+
+EXPOSE 20000
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+----
+
+*1. Docker 打包*
+
+[source,bash]
+----
+docker build -t zyndev/app-user:1.0 .
+----
+
+*2. Docker 运行*
+
+[source,bash]
+----
+docker run -p 20002:20000 -d --name app-user zyndev/app-user:1.0
+----

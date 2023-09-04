@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-user-service
+spec:
+  selector:
+    app: app-user-deployment
+  ports:
+    - name: http-20000
+      protocol: TCP
+      port: 20000
+      targetPort: 20000
+  type: LoadBalancer

@@ -1,0 +1,13 @@
+.idea
+dist
+.venv
+logs
+
+
+# example web-console
+examples/apps/web-console/go-docker
+examples/apps/web-console/go-docker.log
+examples/apps/web-console/dist
+
+# example app-user
+/examples/apps/app-user/.venv-app-user/

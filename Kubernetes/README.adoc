@@ -1,0 +1,7 @@
+= Kubernetes 摸门级简易指南
+yunan zhang <zyndev@gmail.com>
+:toc:
+:icons: font
+
+include::Kubernetes 安装.adoc[]
+

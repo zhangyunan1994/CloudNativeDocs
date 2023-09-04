@@ -1,0 +1,13 @@
+:toc:
+
+== Kubernetes 安装
+
+=== Install on Mac
+
+可以通过安装 Docker Desktop 来间接安装 Kubernetes
+
+=== Install on Windows
+
+可以通过安装 Docker Desktop 来间接安装 Kubernetes
+
+=== Install on Linux

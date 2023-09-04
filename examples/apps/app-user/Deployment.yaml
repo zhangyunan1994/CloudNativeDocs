@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-user-deployment
+  labels:
+    app: app-user-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app-user-deployment
+  template:
+    metadata:
+      name: app-user-deployment
+      labels:
+        app: app-user-deployment
+    spec:
+      containers:
+        - name: app-user-deployment
+          image: zyndev/app-user:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 20000
+              name: http-20000
+              protocol: TCP
+      restartPolicy: Always
+      

@@ -1,0 +1,284 @@
+:toc:
+
+== Dockerfile 说明
+
+`Dockerfile` 文件由一系列指令组成。每个指令都描述了构建镜像的某个步骤。`Docker` 可以通过读取 `Dockerfile` 中的指令自动构建镜像。 `Dockerfile` 是一个文本文档，其中包含用户可以在命令行上调用来组装映像的所有命令。
+
+在 `Dockerfile` 中的指令不区分大小写。不过按照惯例是用大写的，以便更容易地将它们与参数区分开来。在构建过程中按照 `Dockerfile` 中的指令顺序来执行。每个 `Dockerfile` 必须以 `FROM` 开始，其 `FROM` 前面只能有一个或多个 `ARG` 指令
+
+.Dockerfile 中最常用的指令包括：
+* FROM：指定基础镜像
+* LABEL：为镜像添加一些元数据
+* WORKDIR：设置镜像的工作目录
+* ENV：设置环境变量
+* COPY：将文件或目录复制到镜像中
+* ADD：将文件或目录复制到镜像中
+* RUN：执行命令，在构建的阶段执行
+* CMD：指定容器启动后默认执行的命令
+* EXPOSE：指定容器暴露的端口
+* ENTRYPOINT：启动时的默认命令，此指令设置的命令不可修改
+* VOLUME：创建卷
+* USER：指定容器运行时的用户
+* ARG：定义构建时可选参数
+
+=== FROM
+
+FROM 命令是指定你所使用的基础镜像.
+
+.指令语法
+----
+FROM [--platform=<platform>] <image> [AS <name>]
+FROM [--platform=<platform>] <image>[:<tag>] [AS <name>]
+FROM [--platform=<platform>] <image>[@<digest>] [AS <name>]
+----
+
+如果引用多架构的镜像，可选 `--platform` 标志可用于指定架构的镜像。`FROM` 例如 `linux/amd64`、 `linux/arm64`、 或 `windows/amd64`。默认情况下使用构建机器对应的架构
+
+.示例
+----
+FROM ubuntu
+FROM ubuntu:latest
+FROM ubuntu:23.10
+FROM alpine:3.18.3
+FROM busybox
+
+FROM openjdk:8u342-oracle
+FROM python:3.9-slim
+----
+
+=== LABEL
+
+将一些元数据添加到镜像中。
+
+.指令语法
+----
+LABEL <key>=<value> <key>=<value> <key>=<value> ...
+----
+
+.示例
+----
+LABEL "com.example.vendor"="ACME Incorporated"
+LABEL com.example.label-with-value="foo"
+LABEL version="1.0"
+LABEL description="描述"
+LABEL org.opencontainers.image.authors="张瑀楠"
+
+LABEL multi.label1="value1" multi.label2="value2" other="value3"
+
+LABEL multi2.label1="value1" \
+      multi2.label2="value2" \
+      other2="value3"
+----
+
+可以使用 `docker image inspect` 来查看打包后的镜像的元数据信息
+
+----
+docker image inspect --format='{{json .Config.Labels}}' myimage
+
+{
+  "com.example.vendor": "ACME Incorporated",
+  "com.example.label-with-value": "foo",
+  "version": "1.0",
+  "description": "描述",
+  "multi.label1": "value1",
+  "multi.label2": "value2",
+  "other": "value3",
+  "org.opencontainers.image.authors": "张瑀楠",
+  "multi2.label1": "value1",
+  "multi2.label2": "value2",
+  "other2": "value3"
+}
+----
+
+=== ENV
+
+设置环境变量。
+
+.指令语法
+----
+ENV <key>=<value> ...
+----
+
+.示例
+----
+ENV TZ=Asia/Shanghai
+ENV LC_ALL en_US.utf8
+
+ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64
+ENV CLASSPATH $JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+ENV PATH $PATH:$JAVA_HOME/bin:$JRE_HOME/bin
+
+ENV JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64 \
+    CLASSPATH=$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar \
+    PATH=$PATH:$JAVA_HOME/bin:$JRE_HOME/bin
+----
+
+=== WORKDIR
+
+指定容器中的工作目录，可以在构建时使用，也可以在启动容器时使用，构建使用就是通过 `WORKDIR` 将当前目录切换到指定的目录中，容器中使用的意思则是在你使用 `docker run` 命令启动容器时，默认进入的目录是 `WORKDIR` 指定的。
+
+.指令语法
+----
+WORKDIR /path/to/workdir
+----
+
+.示例
+----
+WORKDIR /app
+WORKDIR /opt/user
+----
+
+=== COPY
+
+复制文件到镜像中。
+
+.指令语法
+----
+COPY [--chown=<user>:<group>] [--chmod=<perms>] <src>... <dest>
+COPY [--chown=<user>:<group>] [--chmod=<perms>] ["<src>",... "<dest>"]
+----
+
+`COPY` 的 `src` 部分只能是本地文件，文件路径是 `Dockerfile` 的相对路径。如果 `dest` 是目录并且目录不存在，会帮你创建。
+
+.示例
+----
+COPY requirements.txt /app
+COPY app.py /app
+
+COPY target/*.jar /app/app.jar
+COPY --chmod=777 docker-entrypoint.sh /app
+
+COPY --chown=55:mygroup files* /somedir/
+COPY --chown=bin files* /somedir/
+COPY --chown=1 files* /somedir/
+COPY --chown=10:11 files* /somedir/
+COPY --chown=myuser:mygroup --chmod=644 files* /somedir/
+----
+
+=== ADD
+
+复制命令，把本机的文件复制到镜像中，如果 dest 是目录则会帮你创建出这个目录，如果 src 是压缩文件会帮你解压出来。如果 src 是 url 则下载文件。
+
+.指令语法
+----
+ADD [--chown=<user>:<group>] [--chmod=<perms>] [--checksum=<checksum>] <src>... <dest>
+ADD [--chown=<user>:<group>] [--chmod=<perms>] ["<src>",... "<dest>"]
+----
+
+.示例
+----
+ADD https://th.bing.com/th/id/OIP.sGpPNLl05CAXgEY5bGguOgHaE8 /app/ss.img
+----
+
+----
+FROM alpine:3.18.3
+LABEL authors="zhangyunan"
+
+WORKDIR /app
+
+ADD https://th.bing.com/th/id/OIP.sGpPNLl05CAXgEY5bGguOgHaE8 /app/ss.img
+----
+
+
+=== RUN
+
+运行指定的命令，此命令只有在执行`docker build`时才会执行，其他情况下不会执行。
+
+.指令语法
+----
+RUN <command> (如果在 linux 中入默认用 /bin/sh -c ，在 windows 中用 cmd /S /C)
+RUN ["executable", "param1", "param2"]
+----
+
+.示例
+----
+RUN apt-get update \
+    && apt-get install openjdk-8-jdk --no-install-recommends -y \
+    && apt-get clean all \
+    && rm -rf /var/lib/apt/lists/*
+----
+
+=== CMD
+
+该命令和 RUN 不同，该指令只有在容器运行的时候才会执行。
+
+.指令语法
+----
+CMD ["executable","param1","param2"]
+CMD ["param1","param2"] (as default parameters to ENTRYPOINT)
+CMD command param1 param2
+----
+
+设置容器启动时要运行的命令只有在容器运行时命令是才会运行，其他情况下不运行。如果一个 `Dockerfile` 里面有多条 `CMD` 指令，那么只有文件最后一行的 `CMD` 指令才会生效，其他的全部没用，`CMD` 指令是可以在你执行 `docker run` 的时候覆盖的。
+
+.示例
+----
+CMD ["python", "app.py"]
+CMD ["java", "-jar", "app.jar"]
+----
+
+=== EXPOSE
+
+设置暴露的容器端口，注意是容器端口。
+
+.指令语法
+----
+EXPOSE <port> [<port>/<protocol>...]
+----
+
+默认协议为 TCP
+
+.示例
+----
+EXPOSE 9000
+EXPOSE 9001/tcp
+EXPOSE 9002/udp
+EXPOSE 20000 20001
+EXPOSE 20003/tcp 20004/udp
+----
+
+=== ENTRYPOINT
+
+启动时的默认命令，此指令设置的命令不可修改。与CMD是有区别的。此命令在Dockerfile只能有一个，若有多个，则以文件最后一个出现的才生效。
+
+.指令语法
+----
+ENTRYPOINT ["executable", "param1", "param2"]
+----
+
+.示例
+----
+ENTRYPOINT ["nginx"]
+CMD ["-g","daemon off;"]
+----
+
+如上，如果执行 `docker run -d --name nginx -P nginx` 则最终容器内执行的命令是`nginx -g daemon off; ` ，如果你执行的命令是 `docker run -d --name nginx -P nginx bash` 则最终容器内执行的命令是`nginx bash` 注意区别，细心体会。
+
+=== VOLUME
+
+设置你的卷，在启动容器的时候Docker会在/var/lib/docker的下一级目录下创建一个卷，以保存你在容器中产生的数据。若没有申明则不会创建。
+
+.指令语法
+----
+VOLUME ["/path/to/directory"]
+----
+
+.示例
+----
+VOLUME ["/data"]
+VOLUME ["/data","/app/etc"]
+----
+
+=== USER
+
+指定容器运行的用户是谁，前提条件，用户必须存在。此指令可以在构建镜像是使用或指定容器中进程的运行用户是谁。
+
+.指令语法
+----
+USER daemo
+----
+
+.示例
+----
+USER nginx
+----

@@ -1,0 +1,86 @@
+:toc:
+
+= Go : Web Console
+
+== 一、开发步骤
+
+使用对应的开发工具打开 web-console 即可
+
+=== 安装必要的依赖
+
+=== 测试一下
+
+
+== 二、Docker 使用
+
+*1. 构建 Go*
+
+.Linux 环境包, 为了 docker 使用
+[source,bash]
+----
+rm -rf dist/web-console
+GOOS=linux GOARCH=amd64 go build -o dist/web-console main.go
+----
+
+*2. Docker 打包*
+
+[source,bash]
+----
+docker build -t zyndev/web-console:1.0 .
+----
+
+*3. Docker 运行*
+
+[source,bash]
+----
+docker run -p 20000:20000 -d --name web-console zyndev/web-console:1.0
+----
+
+查看运行的容器
+
+----
+$ docker ps
+CONTAINER ID   IMAGE                       COMMAND                  CREATED          STATUS          PORTS                      NAMES
+83ace33cda1d   zyndev/web-console:1.0      "./script.sh"            5 minutes ago    Up 6 seconds    0.0.0.0:20000->20000/tcp   web-console
+----
+
+*4. 推送镜像到仓库*
+
+[source,bash]
+----
+docker push zyndev/web-console:1.0
+----
+
+== 三、k8s 使用
+
+.启动一个 pod，此时 pod 只能在 k8s 内部访问
+[source,bash]
+----
+kubectl run web-console --image=zyndev/web-console:1.0 --port=20000
+----
+
+.暴露 pod 让外网可以访问
+[source,bash]
+----
+kubectl expose po web-console --type=LoadBalancer --name web-console-http
+----
+
+.执行完成后可以通过 ##kubectl get svc## 来查看对应的 ip 信息
+[source,bash]
+----
+$ kubectl get svc
+
+NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
+kubernetes         ClusterIP      10.96.0.1       <none>        443/TCP           4d3h
+web-console-http   LoadBalancer   10.99.153.138   localhost     20000:30979/TCP   6s
+
+----
+
+其中 *EXTERNAL-IP* 就是往往可以访问的 ip, 因为在本地部署则显示 localhost，可以通过 curl 来测试一下
+
+    curl http://127.0.0.1:20000/health
+    {
+        "Desc": "一个简单的 We245b 项目，类似于常见的管理后台项目",
+        "ServiceName": "Web Console",
+        "Status": "UP"
+    }

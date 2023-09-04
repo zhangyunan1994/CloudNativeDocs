@@ -1,0 +1,73 @@
+:toc:
+
+= Flask: App User
+
+== 开发步骤
+
+=== 配置虚拟开发环境（首次使用，如果已经配置则不要执行）
+
+[source,bash]
+----
+python3 -m venv .venv-app-user
+----
+
+=== 激活虚拟开发环境
+
+可以查看终端，如果已经是 (.venv) 开头，则不需要执行，否则在开始时需要执行
+
+[source,bash]
+----
+. .venv-app-user/bin/activate
+----
+
+=== 安装必要的依赖
+[source,bash]
+----
+pip install -r requirements.txt
+----
+
+=== 测试一下
+
+[source,bash]
+----
+python3 app.py
+----
+
+=== 列出已经安装的依赖到 requirements.txt
+
+[source,bash]
+----
+pip freeze > requirements.txt
+----
+
+== Docker 打包
+
+[source,bash]
+----
+docker build -t zyndev/app-user:1.0 .
+----
+
+== Docker 运行
+
+[source,bash]
+----
+docker run -p 20002:20000 -d --name app-user-docker zyndev/app-user:1.0
+----
+
+== Kubernetes
+
+[source,bash]
+----
+kubectl create -f pod.yaml
+----
+
+
+[source,bash]
+----
+kubectl create -f Deployment.yaml
+----
+
+[source,bash]
+----
+kubectl create -f Service.yaml
+----
