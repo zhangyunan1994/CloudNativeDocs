@@ -1,4 +1,5 @@
 :toc:
+:toclevels: 4
 
 == Docker 示例
 
@@ -193,4 +194,91 @@ docker build -t zyndev/app-user:1.0 .
 [source,bash]
 ----
 docker run -p 20002:20000 -d --name app-user zyndev/app-user:1.0
+----
+
+=== 开发环境
+
+==== MySQL 5
+
+[source,bash]
+----
+docker run --name mysql5 \
+    -p 13306:3306 \
+    -v D:/docker/volumns/mysql8/datadir:/var/lib/mysql \
+    -e MYSQL_ROOT_PASSWORD=123456 \
+    -d mysql:8
+----
+
+==== MySQL 8
+
+[source,bash]
+----
+docker run --name mysql8 \
+    -p 13306:3306 \
+    -v /Users/zhangyunan/myapps/dockerdata/mysql8/datadir:/var/lib/mysql \
+    -e MYSQL_ROOT_PASSWORD=123456 \
+    -d mysql:8
+----
+
+==== MongoDB
+
+[source,bash]
+----
+docker run --name some-mongo \
+    -v /Users/zhangyunan/docker_data/mongo/data:/data/db \
+    -p 27017:27017 \
+    -e MONGO_INITDB_ROOT_USERNAME=root \
+    -e MONGO_INITDB_ROOT_PASSWORD=123456 \
+    -d mongo \
+    --wiredTigerCacheSizeGB 1
+----
+
+==== Redis
+
+[source,bash]
+----
+docker run --name redis \
+    -p 6379:6379 \
+    -v D:/docker/volumns/redis/data:/data \
+    -d redis redis-server --appendonly yes
+----
+
+==== Clickhouse
+
+只指定数据存放位置
+
+[source,bash]
+----
+docker run -d --name some-clickhouse-server --ulimit nofile=262144:262144 \
+    -p 19000:9000 \
+    -p 18123:8123 \
+    -v $HOME/docker_data/some_clickhouse_database/data:/var/lib/clickhouse \
+yandex/clickhouse-server
+----
+
+指定数据和配置文件存放位置
+
+[source,bash]
+----
+docker run -d --name some-clickhouse-server --ulimit nofile=262144:262144 \
+    -p 19000:9000 \
+    -p 18123:8123 \
+    -v /Users/zhangyunan/myapps/dockerdata/some-clickhouse-server/config:/etc/clickhouse-server \
+    -v /Users/zhangyunan/myapps/dockerdata/some-clickhouse-server/data:/var/lib/clickhouse \
+yandex/clickhouse-server
+----
+
+
+[source,bash]
+----
+docker run -d --name some-clickhouse-server --ulimit nofile=262144:262144 \
+    -e CLICKHOUSE_DB=my_database \
+    -e CLICKHOUSE_USER=root \
+    -e CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1 \
+    -e CLICKHOUSE_PASSWORD=123456 \
+    -p 19000:9000 \
+    -p 18123:8123 \
+    -v /Users/zhangyunan/myapps/dockerdata/some-clickhouse-server/config:/etc/clickhouse-server \
+    -v /Users/zhangyunan/myapps/dockerdata/some-clickhouse-server/data:/var/lib/clickhouse \
+clickhouse/clickhouse-server
 ----

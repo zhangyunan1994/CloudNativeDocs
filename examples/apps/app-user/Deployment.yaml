@@ -24,4 +24,3 @@ spec:
               name: http-20000
               protocol: TCP
       restartPolicy: Always
-      

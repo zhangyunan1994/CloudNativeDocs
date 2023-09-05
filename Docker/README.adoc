@@ -2,6 +2,7 @@
 yunan zhang <zyndev@gmail.com>
 :toc:
 :icons: font
+:toclevels: 4
 
 image::images/img-i.png[]
 image::images/img-h.png[]
@@ -92,9 +93,13 @@ curl 127.0.0.1:30002/info
 
 include::Dockerfile 说明.adoc[]
 
+include::Docker Simple Command.adoc[]
+
 include::Docker Examples.adoc[]
 
 include::Docker Compose.adoc[]
 
 include::Docker Swarm.adoc[]
+
+include::Docker Command.adoc[]
 
