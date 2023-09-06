@@ -8,7 +8,18 @@ jdk8 + maven
 
 ```shell
 mvn clean package -Dmaven.test.skip=true -DskipTests=true
+```
+
+```shell
 docker build -t zyndev/app-order:1.0 .
+```
+
+```shell
+docker build .
+```
+
+```shell
+docker build -t zyndev/app-order:1.2 -f Dockerfile2 .
 ```
 
 ## Docker 运行

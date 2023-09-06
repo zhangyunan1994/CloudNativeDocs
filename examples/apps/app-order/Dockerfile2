@@ -1,5 +1,5 @@
 FROM openjdk:8u342-oracle
-LABEL authors="zhangyunan"
+LABEL authors="dockerfile2"
 
 ENV TZ=Asia/Shanghai
 ENV LC_ALL zh_CN.utf8
