@@ -54,6 +54,13 @@ docker build -t zyndev/app-user:1.0 .
 docker run -p 20002:20000 -d --name app-user-docker zyndev/app-user:1.0
 ----
 
+[source,bash]
+----
+docker run --network host -d --name app-user-docker-host zyndev/app-user:1.0
+----
+
+
+
 == Kubernetes
 
 [source,bash]
